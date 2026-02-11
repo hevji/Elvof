@@ -172,8 +172,13 @@ let isShuffled = false;
 async function loadTracks() {
     try {
         // Try to fetch from /music directory
-        const response = await fetch('/music/');
-        const text = await response.text();
+       const response = await fetch('/music/music.json');
+       const songs = await response.json();
+
+       songs.forEach(song => {
+         const audio = new Audio(`/music/${song}`);
+         audio.play();
+    });
         
         // Parse HTML to find audio files
         const parser = new DOMParser();
