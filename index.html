@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MP3 Player</title>
-<style>
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    background: #f0f0f0;
-    font-family: Arial, sans-serif;
-    flex-direction: column;
-  }
-  h1 {
-    margin-bottom: 20px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fullscreen MKV Player</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background-color: #000;
+      overflow: hidden;
+    }
+    video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* fill the screen without distortion */
+      transform: translate(-50%, -50%);
+    }
+  </style>
 </head>
 <body>
-<h1>Click Anywhere to Play</h1>
-<audio id="player" src="song.mp3"></audio>
-
-<script>
-const player = document.getElementById('player');
-document.body.addEventListener('click', () => {
-  player.play().catch(err => console.log(err));
-});
-</script>
+  <video controls autoplay loop>
+    <source src="/videos/deardavid.mkv" type="video/x-matroska">
+    Your browser does not support MKV videos.
+  </video>
 </body>
 </html>
