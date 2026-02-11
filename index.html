@@ -122,6 +122,7 @@
       modalContent.style.opacity = '0';
       setTimeout(() => {
         modal.classList.add('hidden');
+        video.style.filter = 'none'; // <-- ADD THIS LINE
         video.play();
       }, 500);
     });
