@@ -168,139 +168,89 @@ let tracks = [];
 let currentTrackIndex = 0;
 let isShuffled = false;
 
-// Load tracks from /music directory
+// ===== Load Tracks =====
 async function loadTracks() {
     try {
-        // Try to fetch from /music directory
-       const response = await fetch('/music/music.json');
-       const songs = await response.json();
+        const response = await fetch('/music/music.json');
+        const songs = await response.json();
 
-       songs.forEach(song => {
-         const audio = new Audio(`/music/${song}`);
-         audio.play();
-    });
-        
-        // Parse HTML to find audio files
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        const links = doc.querySelectorAll('a');
-        
-        const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.flac'];
-        
-        links.forEach(link => {
-            const href = link.getAttribute('href');
-            if (href && audioExtensions.some(ext => href.toLowerCase().endsWith(ext))) {
-                const fileName = decodeURIComponent(href);
-                const trackName = fileName.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-                
-                tracks.push({
-                    name: trackName,
-                    file: '/music/' + fileName,
-                    duration: null
-                });
-            }
-        });
-        
-        if (tracks.length === 0) {
-            throw new Error('No audio files found');
-        }
-        
+        tracks = songs.map(song => ({
+            name: song.replace(/\.[^/.]+$/, ''),
+            file: '/music/' + song,
+            duration: null
+        }));
+
+        if (!tracks.length) throw new Error('No tracks found');
+
         trackCount.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''} loaded`;
         displayPlaylist();
-        
-        // Load first track
-        if (tracks.length > 0) {
-            loadTrack(0);
-        }
-        
-    } catch (error) {
-        console.error('Error loading tracks:', error);
-        
-        // Fallback: Create sample tracks for demonstration
-        tracks = [
-            { name: 'Place your MP3 files in /music', file: '', duration: null },
-            { name: 'They will appear here automatically', file: '', duration: null },
-            { name: 'Supported formats: MP3, WAV, OGG, M4A, FLAC', file: '', duration: null }
-        ];
-        
-        playlist.innerHTML = `
-            <div class="playlist-empty">
-                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                    <path d="M32 8L8 20V44L32 56L56 44V20L32 8Z" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
-                    <circle cx="32" cy="32" r="6" fill="rgba(255,255,255,0.1)"/>
-                </svg>
-                <p>No music files found in /music directory</p>
-                <p style="margin-top: 8px; font-size: 12px;">Add your audio files to /music and refresh the page</p>
-            </div>
-        `;
-        
+        loadTrack(0);
+
+    } catch (err) {
+        console.error('Error loading tracks:', err);
+        playlist.innerHTML = `<div class="playlist-empty"><p>No tracks found. Add your audio files and music.json in /music</p></div>`;
         trackCount.textContent = 'No tracks loaded';
         statusText.textContent = 'NO MUSIC FILES FOUND';
     }
 }
 
+// ===== Display Playlist =====
 function displayPlaylist() {
     playlist.innerHTML = '';
-    
+
     tracks.forEach((track, index) => {
         const item = document.createElement('div');
         item.className = 'playlist-item';
         item.innerHTML = `
-            <div class="track-number">${String(index + 1).padStart(2, '0')}</div>
+            <div class="track-number">${String(index + 1).padStart(2,'0')}</div>
             <div class="track-details">
                 <div class="track-name">${track.name}</div>
                 <div class="track-duration">--:--</div>
             </div>
         `;
-        
         item.addEventListener('click', () => {
             loadTrack(index);
-            if (!audio.paused) {
-                audio.play();
-            }
+            audio.play();
         });
-        
         playlist.appendChild(item);
-    });
-    
-    // Load durations
-    tracks.forEach((track, index) => {
-        if (track.file) {
-            const tempAudio = new Audio(track.file);
-            tempAudio.addEventListener('loadedmetadata', () => {
-                const duration = formatTime(tempAudio.duration);
-                const durationEl = playlist.children[index]?.querySelector('.track-duration');
-                if (durationEl) {
-                    durationEl.textContent = duration;
-                }
-            });
-        }
+
+        // Load duration
+        const tempAudio = new Audio(track.file);
+        tempAudio.addEventListener('loadedmetadata', () => {
+            track.duration = tempAudio.duration;
+            const durationEl = item.querySelector('.track-duration');
+            if (durationEl) durationEl.textContent = formatTime(tempAudio.duration);
+        });
     });
 }
 
+// ===== Load Track =====
 function loadTrack(index) {
-    if (index < 0 || index >= tracks.length || !tracks[index].file) return;
-    
+    if (index < 0 || index >= tracks.length) return;
+
     currentTrackIndex = index;
     const track = tracks[index];
-    
+
     audio.src = track.file;
     trackTitle.textContent = track.name;
     trackArtist.textContent = `Track ${index + 1} of ${tracks.length}`;
-    
-    // Update active state
+
+    // Highlight active track
     document.querySelectorAll('.playlist-item').forEach((item, i) => {
         item.classList.toggle('active', i === index);
     });
-    
+
     audio.addEventListener('loadedmetadata', () => {
         timeTotal.textContent = formatTime(audio.duration);
     });
+
+    statusText.textContent = audio.paused ? 'READY TO PLAY' : 'NOW PLAYING';
 }
 
+// ===== Play / Pause =====
 function togglePlayPause() {
-    if (!tracks[currentTrackIndex]?.file) return;
-    
+    if (!tracks[currentTrackIndex]) return;
+
     if (audio.paused) {
         audio.play();
         iconPlay.style.display = 'none';
@@ -316,102 +266,92 @@ function togglePlayPause() {
     }
 }
 
+// ===== Next / Previous =====
 function playNext() {
+    if (!tracks.length) return;
     if (isShuffled) {
-        const randomIndex = Math.floor(Math.random() * tracks.length);
-        loadTrack(randomIndex);
+        loadTrack(Math.floor(Math.random() * tracks.length));
     } else {
         loadTrack((currentTrackIndex + 1) % tracks.length);
     }
-    if (document.body.classList.contains('playing')) {
-        audio.play();
-    }
+    audio.play();
 }
 
 function playPrev() {
+    if (!tracks.length) return;
     if (audio.currentTime > 3) {
         audio.currentTime = 0;
     } else {
         loadTrack((currentTrackIndex - 1 + tracks.length) % tracks.length);
-        if (document.body.classList.contains('playing')) {
-            audio.play();
-        }
+        audio.play();
     }
 }
 
+// ===== Shuffle =====
 function toggleShuffle() {
     isShuffled = !isShuffled;
     shuffleBtn.classList.toggle('active', isShuffled);
     statusText.textContent = isShuffled ? 'SHUFFLE ON' : 'SHUFFLE OFF';
     setTimeout(() => {
         statusText.textContent = audio.paused ? 'READY TO PLAY' : 'NOW PLAYING';
-    }, 2000);
+    }, 1500);
 }
 
+// ===== Time / Progress =====
 function formatTime(seconds) {
     if (isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2,'0')}`;
 }
 
-// Event Listeners
-playPauseBtn.addEventListener('click', togglePlayPause);
-nextBtn.addEventListener('click', playNext);
-prevBtn.addEventListener('click', playPrev);
-shuffleBtn.addEventListener('click', toggleShuffle);
-
 audio.addEventListener('timeupdate', () => {
-    if (audio.duration) {
-        const percent = (audio.currentTime / audio.duration) * 100;
-        progressFill.style.width = percent + '%';
-        progressHandle.style.left = percent + '%';
-        timeCurrent.textContent = formatTime(audio.currentTime);
-    }
+    if (!audio.duration) return;
+    const percent = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = percent + '%';
+    progressHandle.style.left = percent + '%';
+    timeCurrent.textContent = formatTime(audio.currentTime);
 });
 
-audio.addEventListener('ended', () => {
-    playNext();
-});
+audio.addEventListener('ended', playNext);
 
-// Progress bar seeking
-progressBar.addEventListener('click', (e) => {
-    if (!tracks[currentTrackIndex]?.file) return;
-    
+// ===== Progress Bar Seeking =====
+progressBar.addEventListener('click', e => {
+    if (!tracks[currentTrackIndex]) return;
     const rect = progressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     audio.currentTime = percent * audio.duration;
 });
 
-// Volume control
-volumeBar.addEventListener('click', (e) => {
+// ===== Volume =====
+volumeBar.addEventListener('click', e => {
     const rect = volumeBar.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    audio.volume = Math.max(0, Math.min(1, percent));
-    volumeFill.style.width = (percent * 100) + '%';
+    let percent = (e.clientX - rect.left) / rect.width;
+    percent = Math.max(0, Math.min(1, percent));
+    audio.volume = percent;
+    volumeFill.style.width = (percent*100) + '%';
 });
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
+// ===== Keyboard Shortcuts =====
+document.addEventListener('keydown', e => {
     if (e.code === 'Space' && e.target === document.body) {
-        e.preventDefault();
-        togglePlayPause();
+        e.preventDefault(); togglePlayPause();
     } else if (e.code === 'ArrowRight') {
-        e.preventDefault();
-        audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
+        e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
     } else if (e.code === 'ArrowLeft') {
-        e.preventDefault();
-        audio.currentTime = Math.max(0, audio.currentTime - 5);
+        e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - 5);
     } else if (e.code === 'ArrowUp') {
-        e.preventDefault();
-        audio.volume = Math.min(1, audio.volume + 0.1);
-        volumeFill.style.width = (audio.volume * 100) + '%';
+        e.preventDefault(); audio.volume = Math.min(1, audio.volume + 0.1); volumeFill.style.width = (audio.volume*100)+'%';
     } else if (e.code === 'ArrowDown') {
-        e.preventDefault();
-        audio.volume = Math.max(0, audio.volume - 0.1);
-        volumeFill.style.width = (audio.volume * 100) + '%';
+        e.preventDefault(); audio.volume = Math.max(0, audio.volume - 0.1); volumeFill.style.width = (audio.volume*100)+'%';
     }
 });
 
-// Initialize
+// ===== Event Listeners =====
+playPauseBtn.addEventListener('click', togglePlayPause);
+nextBtn.addEventListener('click', playNext);
+prevBtn.addEventListener('click', playPrev);
+shuffleBtn.addEventListener('click', toggleShuffle);
+
+// ===== Initialize =====
 loadTracks();
