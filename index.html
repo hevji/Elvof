@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibes - Music Player</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for distinctive typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background effects -->
+    <div class="bg-gradient"></div>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">Vibes</h1>
+            <div class="header-stats">
+                <span id="songCount" class="stat">0 tracks</span>
+            </div>
+        </header>
+
+        <!-- Player card -->
+        <div class="player-card">
+            <!-- Album art section -->
+            <div class="album-art-container">
+                <div class="album-art" id="albumArt">
+                    <div class="album-placeholder">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="vinyl-effect"></div>
+            </div>
+
+            <!-- Song info -->
+            <div class="song-info">
+                <h2 class="song-title" id="songTitle">No song loaded</h2>
+                <p class="song-artist" id="songArtist">Select a track to play</p>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="progress-container">
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <div class="progress-handle" id="progressHandle"></div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="control-btn" id="shuffleBtn" title="Shuffle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+                    </svg>
+                </button>
+                
+                <button class="control-btn" id="prevBtn" title="Previous">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                    </svg>
+                </button>
+                
+                <button class="control-btn control-btn-play" id="playPauseBtn" title="Play">
+                    <svg class="play-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <svg class="pause-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                        <path d="M6 4h4v16H6zM14 4h4v16h-4z"/>
+                    </svg>
+                </button>
+                
+                <button class="control-btn" id="nextBtn" title="Next">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 18h2V6h-2zM6 18l8.5-6L6 6z"/>
+                    </svg>
+                </button>
+                
+                <button class="control-btn" id="volumeBtn" title="Volume">
+                    <svg class="volume-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                    <svg class="mute-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <line x1="23" y1="9" x2="17" y2="15"/>
+                        <line x1="17" y1="9" x2="23" y2="15"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Volume slider -->
+            <div class="volume-slider" id="volumeSlider">
+                <div class="volume-track">
+                    <div class="volume-fill" id="volumeFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playlist section -->
+        <div class="playlist-section">
+            <h3 class="playlist-header">Queue</h3>
+            <div class="playlist" id="playlist">
+                <div class="playlist-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading your music...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden audio element -->
+    <audio id="audioPlayer" preload="metadata"></audio>
+
+    <!-- Toast notifications -->
+    <div class="toast" id="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
